@@ -1,3 +1,4 @@
+import { registerVideoPlayerRef, setVideoPlayerUrl } from './videoPlayerUtils';
 import React, { useRef, useEffect, useState, forwardRef, ForwardedRef } from 'react';
 
 type VideoPlayerProps = {
@@ -8,7 +9,7 @@ type VideoPlayerProps = {
 export type VideoPlayerRef = {
     currentTime: (time: number) => void;
     play: () => void;
-
+    setUrl: (url: string) => void;
 };
 
 const VideoPlayer: React.ForwardRefRenderFunction<VideoPlayerRef, VideoPlayerProps> = (
@@ -24,7 +25,19 @@ const VideoPlayer: React.ForwardRefRenderFunction<VideoPlayerRef, VideoPlayerPro
         }
     };
 
-    const play = () => { if (videoRef.current) videoRef.current.play(); };
+    const play = () => {
+        if (videoRef.current) {
+            videoRef.current.play();
+        }
+    };
+
+    const setUrl = (newUrl: string) => {
+        if (videoRef.current) {
+            videoRef.current.src = newUrl;
+            videoRef.current.load();
+            videoRef.current.play();
+        }
+    };
 
     useEffect(() => {
         const video = videoRef.current;
@@ -32,7 +45,7 @@ const VideoPlayer: React.ForwardRefRenderFunction<VideoPlayerRef, VideoPlayerPro
         if (video) {
             video.src = url;
             video.load();
-            video.play
+            video.play();
 
             video.addEventListener('progress', () => {
                 if (video.buffered.length > 0) {
@@ -54,7 +67,8 @@ const VideoPlayer: React.ForwardRefRenderFunction<VideoPlayerRef, VideoPlayerPro
     useEffect(() => {
         const videoPlayerRef: VideoPlayerRef = {
             currentTime: currentTime,
-            play: play
+            play: play,
+            setUrl: setUrl
         };
 
         // Pass the video player reference to the parent component using the ref prop
@@ -66,15 +80,19 @@ const VideoPlayer: React.ForwardRefRenderFunction<VideoPlayerRef, VideoPlayerPro
             }
         }
 
+        // Register the video player reference for external access
+        registerVideoPlayerRef(videoPlayerRef);
+
         // Cleanup function to remove the reference when the component unmounts
         return () => {
             videoPlayerRef.currentTime = () => { };
+            registerVideoPlayerRef(null);
         };
     }, [ref]);
 
     return (
         <div>
-            <video controls ref={videoRef} className='w-full'></video>
+            <video controls ref={videoRef} className="w-full"></video>
         </div>
     );
 };

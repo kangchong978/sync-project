@@ -98,6 +98,8 @@ const imagePaths = [
     knight_png,
     rabbit_png
 ];
+
+
 const initWebSocket = (whenIncommingReceived: Function) => {
     let currentTime = '';
     let clientId = '';
@@ -158,14 +160,21 @@ const initWebSocket = (whenIncommingReceived: Function) => {
     };
     const sendMessage = (message: string) => {
         if (ws && message) {
-            const messageObject = {
-                clientId: clientId,
-                clientAvatar: clientAvatarPath,
-                message: message
-            };
-
-            ws.send(JSON.stringify(messageObject));
-
+            let messageObject: { [key: string]: string } = Object.fromEntries([
+                ['clientId', clientId],
+                ['clientAvatar', clientAvatarPath],
+                ['message', message],
+            ]);
+            if (message.startsWith("action`setVideoUrl*")) {
+                const parts = message.split("`")[1].split("*");
+                if (parts.length === 2) {
+                    messageObject.action = parts[0];
+                    messageObject.videoUrl = parts[1];
+                }
+            }
+            const messageJson = JSON.stringify(messageObject);
+            ws.send(messageJson);
+            // console.log(messageJson);
         }
     };
 

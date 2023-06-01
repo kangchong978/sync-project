@@ -5,6 +5,7 @@ import VideoPlayer from './videoPlayer';
 import { VideoPlayerRef } from './videoPlayer';
 import AutoExpandTextarea from './autoExpandTextArea';
 import chatting_png from "./images/chatting.png";
+import { setVideoPlayerUrl } from './videoPlayerUtils';
 
 let setCurrentTimeFunc: any;
 let sendCurrentTimeFunc: any;
@@ -17,16 +18,24 @@ let listb: any[] = [];
 
 let { connectWebSocket, setCurrentTime, sendCurrentTime, getClientId, sendMessage } = initWebSocket((incomingMsg: string) => {
   let result = JSON.parse(incomingMsg);
+  if (result.videoUrl && result.action == 'setVideoUrl') {
+    setVideoPlayerUrl(result.videoUrl);
+  }
   if (result.clientId != null) {
     if (result.clientId !== getClientId() && result.currentTime) {
       console.log(result.clientId + '/' + getClientId());
       lista = { ...lista, [result.clientId]: result };
       if (triggerRenderLista != null)
         triggerRenderLista(lista);
-    } else if (result.message) {
+    }
+    else if (result.message) {
+
+
+
       result.currentTimeFrame = Date.now();
       listb = [result, ...listb];
-      triggerRenderListb(listb);
+      if (triggerRenderListb != null)
+        triggerRenderListb(listb);
     }
   }
 });
@@ -44,7 +53,9 @@ export default function Home() {
   const [showClientMenu, setShowClientMenu] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
+  const handleSetVideoUrl = () => {
+    setVideoPlayerUrl('http://localhost:3002/video');
+  };
   function handleItemClick(currentTime: number, options?: { autoplay?: boolean }) {
     if (videoPlayerRef.current) {
       videoPlayerRef.current.currentTime(currentTime);
@@ -120,30 +131,29 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <VideoPlayer
-        url={'http://localhost:3002/video'}
+        url={''}
         listener={(time: string) => {
           if (setCurrentTimeFunc != null) setCurrentTimeFunc(time);
           if (sendCurrentTimeFunc != null) sendCurrentTimeFunc();
         }}
         ref={videoPlayerRef}
       />
-
       <div className='sticky top-0 z-10 bg-slate-50 dark:bg-slate-950'>
-        {currentClient && (
-          <div className="px-4 py-2  pb-4">
-            <ul role="list" className="">
-              <li className="flex justify-between">
-                <div
-                  className="  mt-2 flex items-center justify-center gap-x-2   bg-transparent   rounded-md pr-2    flex items-center justify-between   w-full "
-                >
+
+        <div className="px-4 py-2  pb-4">
+          <ul role="list" className="">
+            <li className="flex justify-between">
+              <div
+                className="  mt-2 flex items-center justify-center gap-x-2   bg-transparent   rounded-md pr-2    flex items-center justify-between   w-full "
+              >
 
 
-                  <div className=" relative  ">
-                    <span className="cursor-pointer relative  inline-flex items-center rounded-full bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" onClick={handleOpenClientMenu}>Pin</span>
+                <div className=" relative  ">
+                  <span className="cursor-pointer relative  inline-flex items-center rounded-full bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" onClick={handleOpenClientMenu}>Pin</span>
+                  {showClientMenu && (
+                    <div className=" absolute bg-white dark:bg-neutral-900  rounded-md shadow-lg p-2 z-10">
 
-                    {showClientMenu && (
-                      <div className=" absolute bg-white dark:bg-neutral-900  rounded-md shadow-lg p-2 z-10">
-
+                      {clients.length > 0 ? (
                         <ul role="list" className="space-y-2">
 
                           {clients.map((client: any) => (
@@ -175,47 +185,53 @@ export default function Home() {
                             </li>
                           ))}
                         </ul>
+                      ) : (
+                        <p className='font-normal text-xs text-neutral-400 dark:text-zinc-700 text-right'>Empty</p>
+                      )}
 
-                      </div>
-                    )}
-                  </div>
-                  <div className='cursor-pointer flex items-center hover:bg-gray-200 rounded-md pr-2 dark:hover:bg-gray-900' onClick={() => handleItemClick(currentClient.currentTime)}>
+                    </div>
+                  )}
+                </div>
+
+                {currentClient && (
+                  <div className='cursor-pointer flex items-center hover:bg-gray-200 rounded-md  dark:hover:bg-gray-900' onClick={() => handleItemClick(currentClient.currentTime)}>
                     <span className={favoriteClients.includes(currentClient.clientId) ? "inline-flex items-center rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-500 dark:text-yellow-600 ring-1 ring-inset ring-yellow-500 dark:ring-yellow-600 dark:bg-yellow-900" : "inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-neutral-900"}>
                       <img src={currentClient.clientAvatar} className="h-4 inline mr-1" alt="Client Avatar" />
                       {currentClient.clientId}
                     </span>
                     <div className='w-1'></div>
-                    <p className="font-normal text-xs text-neutral-400 dark:text-zinc-700"> at {formatTime(currentClient.currentTime)} </p>
+                    <span className=" text-xs font-medium inline-flex items-center px-1 py-0.5 rounded  border border-gray-400 dark:border-gray-400 dark:bg-gray-700 dark:text-gray-500 bg-gray-100 text-gray-400">
+                      <svg aria-hidden="true" className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+                      {formatTime(currentClient.currentTime)}
+                    </span>
+                  </div>)}
+              </div>
 
-                  </div>
 
-                </div>
+            </li>
+          </ul>
+        </div>
 
-
-              </li>
-            </ul>
-          </div>
-        )}
       </div>
 
       <div className="flex-1 ">
         {resultsb.messages.length > 0 ? (
           <div className=" ">
-            <ul role="list" className="">
+            <ul role="list" className=" mt-5">
               {resultsb.messages.map((client, index) => (
                 <li className="flex justify-between" key={client.clientId + "-" + client.currentTimeFrame + "-" + client.message}>
                   <div className="w-full hover:bg-gray-200 rounded-md dark:hover:bg-neutral-900  px-4 py-1">
-                    <div className="cursor-pointer flex items-center justify-between group w-full">
+                    <div className=" flex items-center justify-between w-full">
                       <div className='inline-flex '>
                         <div className='relative'>
-                          {index === 0 && (
+                          {/* {index === 0 && (
                             <div className="absolute">
                               <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-400"></span>
                               </span>
                             </div>
-                          )}
+                          )} */}
                           <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 dark:bg-neutral-900 min-w-">
                             <img src={client.clientAvatar} className="h-4 inline mr-1" alt="Client Avatar" />
                             {client.clientId}
@@ -234,6 +250,20 @@ export default function Home() {
                         </ Fragment>
                       ))}
                     </p>
+                    {client.videoUrl && client.action == 'setVideoUrl' && (
+                      <span className="inline-flex items-center  min-w">
+                        <span className="relative  inline-flex items-center rounded-full bg-red-200 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" >Video</span>
+                        <p className="font-normal text-xs text-neutral-400 dark:text-zinc-700 flex-grow py-2 px-1">
+                          {client.videoUrl.split("\n").map((line: any, index: number) => (
+                            < Fragment key={index}>
+                              {line}
+                              <br />
+                            </ Fragment>
+                          ))}
+                        </p>
+                      </span>
+                    )}
+
                   </div>
                 </li>
               ))}
