@@ -185,7 +185,7 @@ const initWebSocket = (whenIncommingReceived: Function) => {
         setClientId(generatedClientId);
         setClientAvatarPath(generatedClientAvatar);
 
-        ws = new WebSocket('ws://localhost:3002');
+        ws = new WebSocket('wss://localhost:3002');
 
         ws.onmessage = handleIncomingMessage;
         ws.onopen = handleConnectionOpen;

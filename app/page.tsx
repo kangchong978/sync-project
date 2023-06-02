@@ -6,6 +6,7 @@ import { VideoPlayerRef } from './videoPlayer';
 import AutoExpandTextarea from './autoExpandTextArea';
 import chatting_png from "./images/chatting.png";
 import { setVideoPlayerUrl } from './videoPlayerUtils';
+import WebRTCComponent from './webRTC';
 
 let setCurrentTimeFunc: any;
 let sendCurrentTimeFunc: any;
@@ -51,8 +52,17 @@ export default function Home() {
   const [currentClientIndex, setCurrentClientIndex] = useState(0);
   const [favoriteClients, setFavoriteClients] = useState<string[]>([]);
   const [showClientMenu, setShowClientMenu] = useState(false);
-
+  const [showWebrtcComponent, setShowWebrtcComponent] = useState(false);
+  const handleHangUp = () => {
+    // Handle hangup logic here
+    setShowWebrtcComponent(!showWebrtcComponent);
+    // Additional actions after hangup...
+  };
+  const handleButtonClick = () => {
+    setShowWebrtcComponent(!showWebrtcComponent);
+  };
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
   const handleSetVideoUrl = () => {
     setVideoPlayerUrl('http://localhost:3002/video');
   };
@@ -129,6 +139,7 @@ export default function Home() {
   const currentClient = clients[currentClientIndex];
 
   return (
+
     <main className="min-h-screen">
       <VideoPlayer
         url={''}
@@ -149,7 +160,9 @@ export default function Home() {
 
 
                 <div className=" relative  ">
-                  <span className="cursor-pointer relative  inline-flex items-center rounded-full bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" onClick={handleOpenClientMenu}>Pin</span>
+                  <span className="cursor-pointer relative  inline-flex items-center rounded-full bg-pink-50 px-2 py-1 mr-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" onClick={handleOpenClientMenu}>Pin</span>
+                  <span className="cursor-pointer relative  inline-flex items-center rounded-full bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700/10" onClick={handleButtonClick}>Call</span>
+
                   {showClientMenu && (
                     <div className=" absolute bg-white dark:bg-neutral-900  rounded-md shadow-lg p-2 z-10">
 
@@ -214,6 +227,7 @@ export default function Home() {
 
       </div>
 
+      {showWebrtcComponent && <WebRTCComponent onHangUp={handleHangUp} />}
       <div className="flex-1 ">
         {resultsb.messages.length > 0 ? (
           <div className=" ">
