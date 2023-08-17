@@ -64,7 +64,7 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const handleSetVideoUrl = () => {
-    setVideoPlayerUrl('http://localhost:3002/video');
+    setVideoPlayerUrl('https://192.168.100.65:3002/video');
   };
   function handleItemClick(currentTime: number, options?: { autoplay?: boolean }) {
     if (videoPlayerRef.current) {

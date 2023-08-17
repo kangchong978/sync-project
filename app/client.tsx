@@ -165,10 +165,13 @@ const initWebSocket = (whenIncommingReceived: Function) => {
                 ['clientAvatar', clientAvatarPath],
                 ['message', message],
             ]);
-            if (message.startsWith("action`setVideoUrl*")) {
-                const parts = message.split("`")[1].split("*");
+            if (message.startsWith("#setVideoUrl?") || message.startsWith("#url?")) {
+                const parts = message.split("#")[1].split("?");
                 if (parts.length === 2) {
                     messageObject.action = parts[0];
+                    if (messageObject.action == "url") {
+                        messageObject.action = "#setVideoUrl?";
+                    }
                     messageObject.videoUrl = parts[1];
                 }
             }
@@ -185,7 +188,7 @@ const initWebSocket = (whenIncommingReceived: Function) => {
         setClientId(generatedClientId);
         setClientAvatarPath(generatedClientAvatar);
 
-        ws = new WebSocket('wss://localhost:3002');
+        ws = new WebSocket(`wss://${window.location.hostname}:3002`);
 
         ws.onmessage = handleIncomingMessage;
         ws.onopen = handleConnectionOpen;
